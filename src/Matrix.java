@@ -46,25 +46,12 @@ public class Matrix extends JFrame {
                 JButton cellButton = new JButton();
 
                 // Customize button
-                //cellButton.setFont(new Font("Arial", Font.BOLD, 16));                   // Bold font
+                cellButton.setFont(new Font("", Font.BOLD, 30));                   // Bold font
                 cellButton.setBackground(null);
-                cellButton.setForeground(Color.black);                                    // White text
+                cellButton.setForeground(Color.BLACK);                                    // Black text
                 cellButton.setFocusPainted(false);                                        // Remove focus outline
                 cellButton.setCursor(new Cursor(Cursor.HAND_CURSOR));                     // Hand cursor on hover
                 cellButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1)); // Thick border
-
-//                // Add hover effect
-//                cellButton.addMouseListener(new java.awt.event.MouseAdapter() {
-//                    @Override
-//                    public void mouseEntered(java.awt.event.MouseEvent evt) {
-//                        cellButton.setBackground(new Color(100, 149, 237)); // Light blue on hover
-//                    }
-//
-//                    @Override
-//                    public void mouseExited(java.awt.event.MouseEvent evt) {
-//                        cellButton.setBackground(new Color(70, 130, 180)); // Restore original color
-//                    }
-//                });
 
                 cellButton.addActionListener(new CellClickListener(row, col));
                 cellButtons[row][col] = cellButton;
@@ -164,8 +151,26 @@ public class Matrix extends JFrame {
     private void enablePlacing(String symbol) {
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
-                cellButtons[row][col].setEnabled(true);
-                cellButtons[row][col].putClientProperty("symbol", symbol);
+                JButton cellButton = cellButtons[row][col];
+                cellButton.setEnabled(true); // Enable the button
+                cellButton.putClientProperty("symbol", symbol); // Store the symbol
+
+                // Add action listener to update the button state when clicked
+                cellButton.addActionListener(e -> {
+                    String currentSymbol = (String) cellButton.getClientProperty("symbol");
+                    if (currentSymbol.equals("X")) {
+                        cellButton.setBackground(new Color(255, 50, 50)); // Change background to red for X
+                        cellButton.setForeground(Color.WHITE); // Change foreground to white for X
+                    } else if(currentSymbol.equals("😊")) {
+                        cellButton.setBackground(new Color(52, 82, 204)); // Reset background for other symbols
+                        cellButton.setForeground(Color.white); // Reset foreground for other symbols
+                    } else if(currentSymbol.equals("🎯")) {
+                        cellButton.setBackground(new Color(255, 173, 50));
+                        cellButton.setForeground(Color.WHITE);
+                    }
+                    cellButton.setText(currentSymbol); // Set the text to the chosen symbol
+                    cellButton.setEnabled(false); // Disable the button after placing the symbol
+                });
             }
         }
     }
@@ -428,8 +433,11 @@ public class Matrix extends JFrame {
 
         // Trace back from the goal to the start (😊) using the parent arrays
         while (!(row == happyFaceRow && col == happyFaceCol)) {
-            // Highlight the current cell on the path with a green background
-            cellButtons[row][col].setBackground(Color.GREEN);
+            // Skip coloring the goal cell
+            if (!(row == goalRow && col == goalCol)) {
+                // Highlight the current cell on the path with a green background
+                cellButtons[row][col].setBackground(Color.GREEN);
+            }
 
             // Move to the parent cell by retrieving its coordinates from the parent arrays
             int tempRow = parentRow[row][col];
@@ -441,12 +449,15 @@ public class Matrix extends JFrame {
             stepCount++;
         }
 
-        // Highlight the starting point (😊)
-        cellButtons[happyFaceRow][happyFaceCol].setBackground(Color.GREEN);
+        // Skip coloring the starting point (😊)
+        if (!(row == happyFaceRow && col == happyFaceCol)) {
+            cellButtons[happyFaceRow][happyFaceCol].setBackground(Color.GREEN);
+        }
 
         // Display a success message with the number of steps
         JOptionPane.showMessageDialog(this, "Path found! 😊 reached 🎯 in " + stepCount + " steps.");
     }
+
 
     //=========================================================================================================
 
