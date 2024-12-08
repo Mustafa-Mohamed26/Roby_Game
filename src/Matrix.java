@@ -8,10 +8,11 @@ import java.util.*;
 
 public class Matrix extends JFrame {
     // Constants for the grid size
-    private static final int GRID_SIZE = 20;
+    private  int gridRows = 20;
+    private  int gridCols = 20;
 
     // Components for the grid and control panel
-    private JButton[][] cellButtons = new JButton[GRID_SIZE][GRID_SIZE];
+    private JButton[][] cellButtons;
     private JButton happyFaceButton, xButton, goalButton, goButton, resetButton, undoButton;
 
     // Positions of Happy Face and Goal
@@ -25,32 +26,55 @@ public class Matrix extends JFrame {
     private JTextField rowInputField, colInputField;
     private JButton setSizeButton;
 
-    //=========================================================================================================
+    private JPanel gridPanel;
+
+//=========================================================================================================
 
     // Constructor: Initializes the GUI
     public Matrix() {
-        setTitle("20x20 Matrix GUI");
+        setTitle("Custom Grid Matrix GUI");
         setSize(1000, 800);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
+        // Input Panel for custom rows and columns
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        rowInputField = new JTextField(String.valueOf(gridRows),10); // Field for number of rows
+        colInputField = new JTextField(String.valueOf(gridCols),10); // Field for number of columns
+
+        setSizeButton = new JButton("Resize Grid");
+        setSizeButton.setFont(new Font("Arial", Font.PLAIN, 16)); // Set font
+        setSizeButton.setBackground(new Color(0, 0, 0)); // Set background color
+        setSizeButton.setForeground(Color.WHITE); // Set text color
+        setSizeButton.setPreferredSize(new Dimension(150, 30));
+        setSizeButton.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2)); // Set border
+        setSizeButton.setFocusPainted(false); // Remove focus border
+        setSizeButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Set cursor to hand
+
+        inputPanel.add(new JLabel("Rows:"));
+        inputPanel.add(rowInputField);
+        inputPanel.add(new JLabel("Cols:"));
+        inputPanel.add(colInputField);
+        inputPanel.add(setSizeButton);
+        add(inputPanel, BorderLayout.NORTH);
 
         // Matrix panel
-        JPanel gridPanel = new JPanel();
-        gridPanel.setLayout(new GridLayout(GRID_SIZE, GRID_SIZE));
+        gridPanel = new JPanel();
+        gridPanel.setLayout(new GridLayout(gridRows, gridCols));
         gridPanel.setBackground(new Color(255, 255, 255)); // Dark background for contrast
 
+        cellButtons = new JButton[gridRows][gridCols]; // Initialize cellButtons array
 
-        for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE; col++) {
+        // Create buttons for the grid
+        for (int row = 0; row < gridRows; row++) {
+            for (int col = 0; col < gridCols; col++) {
                 JButton cellButton = new JButton();
-
-                // Customize button
-                cellButton.setFont(new Font("", Font.BOLD, 30));                   // Bold font
+                cellButton.setFont(new Font("", Font.BOLD, 30)); // Bold font
                 cellButton.setBackground(null);
-                cellButton.setForeground(Color.BLACK);                                    // Black text
-                cellButton.setFocusPainted(false);                                        // Remove focus outline
-                cellButton.setCursor(new Cursor(Cursor.HAND_CURSOR));                     // Hand cursor on hover
+                cellButton.setForeground(Color.BLACK); // Black text
+                cellButton.setFocusPainted(false); // Remove focus outline
+                cellButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Hand cursor on hover
                 cellButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1)); // Thick border
 
                 cellButton.addActionListener(new CellClickListener(row, col));
@@ -68,79 +92,74 @@ public class Matrix extends JFrame {
         happyFaceButton = new JButton("Character");
         happyFaceButton.addActionListener(e -> {
             enablePlacing("😊");
-            //happyFaceButton.setEnabled(false);
         });
-        // Customize the button
-        happyFaceButton.setFont(new Font("Arial", Font.BOLD, 16));  // Set font
-        happyFaceButton.setBackground(new Color(52, 82, 204));        // Set background color
-        happyFaceButton.setForeground(Color.WHITE);                            // Set text color
-        happyFaceButton.setBorder(BorderFactory.createLineBorder(Color.WHITE,2)); // Set border
-        happyFaceButton.setFocusPainted(false);                                // Remove focus border
-        happyFaceButton.setCursor(new Cursor(Cursor.HAND_CURSOR));             // Set cursor to hand
+        happyFaceButton.setFont(new Font("Arial", Font.BOLD, 16)); // Set font
+        happyFaceButton.setBackground(new Color(52, 82, 204)); // Set background color
+        happyFaceButton.setForeground(Color.WHITE); // Set text color
+        happyFaceButton.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2)); // Set border
+        happyFaceButton.setFocusPainted(false); // Remove focus border
+        happyFaceButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Set cursor to hand
         controlPanel.add(happyFaceButton);
 
         // X Button
         xButton = new JButton("Set X");
         xButton.addActionListener(e -> enablePlacing("X"));
-        // Customize the button
-        xButton.setFont(new Font("Arial", Font.BOLD, 16));  // Set font
-        xButton.setBackground(new Color(255, 50, 50));        // Set background color
-        xButton.setForeground(Color.WHITE);                            // Set text color
-        xButton.setBorder(BorderFactory.createLineBorder(Color.WHITE,2)); // Set border
-        xButton.setFocusPainted(false);                                // Remove focus border
-        xButton.setCursor(new Cursor(Cursor.HAND_CURSOR));             // Set cursor to hand
+        xButton.setFont(new Font("Arial", Font.BOLD, 16)); // Set font
+        xButton.setBackground(new Color(255, 50, 50)); // Set background color
+        xButton.setForeground(Color.WHITE); // Set text color
+        xButton.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2)); // Set border
+        xButton.setFocusPainted(false); // Remove focus border
+        xButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Set cursor to hand
         controlPanel.add(xButton);
 
         // Goal Button
         goalButton = new JButton("Set Goal");
         goalButton.addActionListener(e -> {
             enablePlacing("🎯");
-            //goalButton.setEnabled(false);
         });
-        // Customize the button
-        goalButton.setFont(new Font("Arial", Font.BOLD, 16));  // Set font
-        goalButton.setBackground(new Color(255, 173, 50));        // Set background color
-        goalButton.setForeground(Color.WHITE);                            // Set text color
-        goalButton.setBorder(BorderFactory.createLineBorder(Color.WHITE,2)); // Set border
-        goalButton.setFocusPainted(false);                                // Remove focus border
-        goalButton.setCursor(new Cursor(Cursor.HAND_CURSOR));             // Set cursor to hand
+        goalButton.setFont(new Font("Arial", Font.BOLD, 16)); // Set font
+        goalButton.setBackground(new Color(255, 173, 50)); // Set background color
+        goalButton.setForeground(Color.WHITE); // Set text color
+        goalButton.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2)); // Set border
+        goalButton.setFocusPainted(false); // Remove focus border
+        goalButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Set cursor to hand
         controlPanel.add(goalButton);
 
         // Go Button
         goButton = new JButton("Go");
         goButton.addActionListener(e -> startMovingToGoal());
-        // Customize the button
-        goButton.setFont(new Font("Arial", Font.BOLD, 16));  // Set font
-        goButton.setBackground(new Color(70, 205, 35));        // Set background color
-        goButton.setForeground(Color.WHITE);                            // Set text color
-        goButton.setBorder(BorderFactory.createLineBorder(Color.WHITE,2)); // Set border
-        goButton.setFocusPainted(false);                                // Remove focus border
-        goButton.setCursor(new Cursor(Cursor.HAND_CURSOR));             // Set cursor to hand
+        goButton.setFont(new Font("Arial", Font.BOLD, 16)); // Set font
+        goButton.setBackground(new Color(70, 205, 35)); // Set background color
+        goButton.setForeground(Color.WHITE); // Set text color
+        goButton.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2)); // Set border
+        goButton.setFocusPainted(false); // Remove focus border
+        goButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Set cursor to hand
         controlPanel.add(goButton);
 
         // Reset Button
         resetButton = new JButton("Reset");
         resetButton.addActionListener(e -> resetBoard());
-        // Customize the button
-        resetButton.setFont(new Font("Arial", Font.BOLD, 16));  // Set font
-        resetButton.setBackground(new Color(0, 0, 0));        // Set background color
-        resetButton.setForeground(Color.WHITE);                            // Set text color
-        resetButton.setBorder(BorderFactory.createLineBorder(Color.WHITE,2)); // Set border
-        resetButton.setFocusPainted(false);                                // Remove focus border
-        resetButton.setCursor(new Cursor(Cursor.HAND_CURSOR));             // Set cursor to hand
+        resetButton.setFont(new Font("Arial", Font.BOLD, 16)); // Set font
+        resetButton.setBackground(new Color(0, 0, 0)); // Set background color
+        resetButton.setForeground(Color.WHITE); // Set text color
+        resetButton.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2)); // Set border
+        resetButton.setFocusPainted(false); // Remove focus border
+        resetButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Set cursor to hand
         controlPanel.add(resetButton);
 
         // Undo Button
         undoButton = new JButton("Undo");
         undoButton.addActionListener(e -> undoLastAction());
-        // Customize the button
-        undoButton.setFont(new Font("Arial", Font.BOLD, 16));  // Set font
-        undoButton.setBackground(new Color(0, 0, 0));        // Set background color
-        undoButton.setForeground(Color.WHITE);                            // Set text color
-        undoButton.setBorder(BorderFactory.createLineBorder(Color.WHITE,2)); // Set border
-        undoButton.setFocusPainted(false);                                // Remove focus border
-        undoButton.setCursor(new Cursor(Cursor.HAND_CURSOR));             // Set cursor to hand
+        undoButton.setFont(new Font("Arial", Font.BOLD, 16)); // Set font
+        undoButton.setBackground(new Color(0, 0, 0)); // Set background color
+        undoButton.setForeground(Color.WHITE); // Set text color
+        undoButton.setBorder(BorderFactory.createLineBorder(Color.WHITE, 2)); // Set border
+        undoButton.setFocusPainted(false); // Remove focus border
+        undoButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Set cursor to hand
         controlPanel.add(undoButton);
+
+        // Resize grid action
+        setSizeButton.addActionListener(new ResizeListener());
 
         add(gridPanel, BorderLayout.CENTER);
         add(controlPanel, BorderLayout.SOUTH);
@@ -148,9 +167,66 @@ public class Matrix extends JFrame {
 
     //=========================================================================================================
 
+    private void initializeMatrix() {
+        gridPanel.removeAll();
+        cellButtons = new JButton[gridRows][gridCols]; // Initialize cellButtons array
+
+        // Create buttons for the grid
+        for (int row = 0; row < gridRows; row++) {
+            for (int col = 0; col < gridCols; col++) {
+                JButton cellButton = new JButton();
+                cellButton.setFont(new Font("", Font.BOLD, 30)); // Bold font
+                cellButton.setBackground(null);
+                cellButton.setForeground(Color.BLACK); // Black text
+                cellButton.setFocusPainted(false); // Remove focus outline
+                cellButton.setCursor(new Cursor(Cursor.HAND_CURSOR)); // Hand cursor on hover
+                cellButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 1)); // Thick border
+
+                cellButton.addActionListener(new CellClickListener(row, col));
+                cellButtons[row][col] = cellButton;
+                gridPanel.add(cellButton);
+            }
+        }
+        gridPanel.revalidate();
+        gridPanel.repaint();
+    }
+
+    //=========================================================================================================
+    private class ResizeListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                int newRows = Integer.parseInt(rowInputField.getText());
+                int newCols = Integer.parseInt(colInputField.getText());
+                if (newRows > 0 && newRows <= 100 && newCols > 0 && newCols <= 100) {
+                    gridRows = newRows;
+                    gridCols = newCols;
+                    gridPanel.setLayout(new GridLayout(gridRows, gridCols));
+                    initializeMatrix();
+                } else {
+                    JOptionPane.showMessageDialog(
+                            Matrix.this,
+                            "Rows and columns must be between 1 and 100.",
+                            "Invalid Input",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(
+                        Matrix.this,
+                        "Please enter valid numbers.",
+                        "Invalid Input",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+    }
+
+    //=========================================================================================================
+
     private void enablePlacing(String symbol) {
-        for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE; col++) {
+        for (int row = 0; row < gridRows; row++) {
+            for (int col = 0; col < gridCols; col++) {
                 JButton cellButton = cellButtons[row][col];
                 cellButton.setEnabled(true); // Enable the button
                 cellButton.putClientProperty("symbol", symbol); // Store the symbol
@@ -239,13 +315,13 @@ public class Matrix extends JFrame {
         queue.add(new int[]{happyFaceRow, happyFaceCol});
 
         // To track visited cells
-        boolean[][] visited = new boolean[GRID_SIZE][GRID_SIZE];
+        boolean[][] visited = new boolean[gridRows][gridCols];
         visited[happyFaceRow][happyFaceCol] = true;
 
         // To reconstruct the path
-        int[][] parentRow = new int[GRID_SIZE][GRID_SIZE];
-        int[][] parentCol = new int[GRID_SIZE][GRID_SIZE];
-        for (int i = 0; i < GRID_SIZE; i++) {
+        int[][] parentRow = new int[gridRows][gridCols];
+        int[][] parentCol = new int[gridRows][gridCols];
+        for (int i = 0; i < gridRows; i++) {
             Arrays.fill(parentRow[i], -1);
             Arrays.fill(parentCol[i], -1);
         }
@@ -270,7 +346,7 @@ public class Matrix extends JFrame {
                 int newCol = col + dc[i];
 
                 // Check boundaries and if cell is unvisited and not an 'X'
-                if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE
+                if (newRow >= 0 && newRow < gridRows && newCol >= 0 && newCol < gridCols
                         && !visited[newRow][newCol]
                         && !"X".equals(cellButtons[newRow][newCol].getText())) {
 
@@ -295,18 +371,18 @@ public class Matrix extends JFrame {
 
     private void dfs() {
         // Create a 2D array to track visited cells
-        boolean[][] visited = new boolean[GRID_SIZE][GRID_SIZE];
+        boolean[][] visited = new boolean[gridRows][gridCols];
 
         // Create a stack to simulate the recursive behavior of Depth First Search (DFS)
         Stack<int[]> stack = new Stack<>();
         stack.push(new int[]{happyFaceRow, happyFaceCol}); // Push the starting position (Happy Face) onto the stack
 
         // Arrays to keep track of the parent cell for each cell (used for path reconstruction)
-        int[][] parentRow = new int[GRID_SIZE][GRID_SIZE];
-        int[][] parentCol = new int[GRID_SIZE][GRID_SIZE];
+        int[][] parentRow = new int[gridRows][gridCols];
+        int[][] parentCol = new int[gridRows][gridCols];
 
         // Initialize parent arrays with -1, indicating no parent yet
-        for (int i = 0; i < GRID_SIZE; i++) {
+        for (int i = 0; i < gridRows; i++) {
             Arrays.fill(parentRow[i], -1);
             Arrays.fill(parentCol[i], -1);
         }
@@ -339,7 +415,7 @@ public class Matrix extends JFrame {
                 int newCol = col + dc[i];
 
                 // Check if the neighbor is within bounds, unvisited, and not blocked ('X')
-                if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE
+                if (newRow >= 0 && newRow < gridRows && newCol >= 0 && newCol < gridCols
                         && !visited[newRow][newCol]
                         && !"X".equals(cellButtons[newRow][newCol].getText())) {
                     stack.push(new int[]{newRow, newCol}); // Add the neighbor to the stack
@@ -363,12 +439,12 @@ public class Matrix extends JFrame {
         pq.add(new Node(happyFaceRow, happyFaceCol, 0));
 
         // 2D array to track visited cells
-        boolean[][] visited = new boolean[GRID_SIZE][GRID_SIZE];
+        boolean[][] visited = new boolean[gridRows][gridCols];
 
         // Arrays to keep track of the parent of each cell (used for path reconstruction)
-        int[][] parentRow = new int[GRID_SIZE][GRID_SIZE];
-        int[][] parentCol = new int[GRID_SIZE][GRID_SIZE];
-        for (int i = 0; i < GRID_SIZE; i++) {
+        int[][] parentRow = new int[gridRows][gridCols];
+        int[][] parentCol = new int[gridRows][gridCols];
+        for (int i = 0; i < gridRows; i++) {
             Arrays.fill(parentRow[i], -1); // Initialize with -1 (no parent)
             Arrays.fill(parentCol[i], -1);
         }
@@ -400,7 +476,7 @@ public class Matrix extends JFrame {
                 int newCol = col + dc[i];
 
                 // Check if the neighbor is within bounds, unvisited, and not blocked ('X')
-                if (newRow >= 0 && newRow < GRID_SIZE && newCol >= 0 && newCol < GRID_SIZE
+                if (newRow >= 0 && newRow < gridRows && newCol >= 0 && newCol < gridCols
                         && !visited[newRow][newCol]
                         && !"X".equals(cellButtons[newRow][newCol].getText())) {
                     // Calculate the heuristic (straight-line distance to the goal)
@@ -476,8 +552,8 @@ public class Matrix extends JFrame {
 
 
     private void resetBoard() {
-        for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE; col++) {
+        for (int row = 0; row < gridRows; row++) {
+            for (int col = 0; col < gridCols; col++) {
                 cellButtons[row][col].setText(""); // Clear text
                 cellButtons[row][col].setEnabled(true); // Enable button
                 cellButtons[row][col].setBackground(null); // Reset background to default
@@ -523,8 +599,8 @@ public class Matrix extends JFrame {
     //=========================================================================================================
 
     private void resetPath() {
-        for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE; col++) {
+        for (int row = 0; row < gridRows; row++) {
+            for (int col = 0; col < gridCols; col++) {
                 if (cellButtons[row][col].getBackground() == Color.GREEN) {
                     cellButtons[row][col].setBackground(null); // Reset background to default
                 }
