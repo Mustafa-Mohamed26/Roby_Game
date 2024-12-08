@@ -493,12 +493,32 @@ public class Matrix extends JFrame {
 
     private void undoLastAction() {
         if (!actionStack.isEmpty()) {
-            Action lastAction = actionStack.pop();
+            Action lastAction = actionStack.pop();  // Pop the last action from the stack
+
+            // Restore the previous state of the cell (text and button state)
             cellButtons[lastAction.row][lastAction.col].setText(lastAction.previousText);
-            if (lastAction.previousText.equals("😊")) happyFaceButton.setEnabled(true);
-            if (lastAction.previousText.equals("🎯")) goalButton.setEnabled(true);
+
+            // Reset the button to its default state (normal form)
+            cellButtons[lastAction.row][lastAction.col].setEnabled(true); // Re-enable the button
+            cellButtons[lastAction.row][lastAction.col].setBackground(null); // Reset background to default
+            cellButtons[lastAction.row][lastAction.col].setText(""); // Reset the text to default
+
+            // Handle special cases for the Happy Face (😊) and Goal (🎯) symbols
+            if (lastAction.previousText.equals("😊")) {
+                happyFaceRow = -1; // Clear the Happy Face position
+                happyFaceCol = -1;
+                happyFaceButton.setEnabled(true); // Re-enable the Happy Face button
+            } else if (lastAction.previousText.equals("🎯")) {
+                goalRow = -1; // Clear the Goal position
+                goalCol = -1;
+                goalButton.setEnabled(true); // Re-enable the Goal button
+            }
+        } else {
+            JOptionPane.showMessageDialog(this, "No actions to undo.");
         }
     }
+
+
 
     //=========================================================================================================
 
