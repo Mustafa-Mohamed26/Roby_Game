@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.*;
+import java.util.List;
 
 
 public class Matrix extends JFrame {
@@ -326,50 +327,96 @@ public class Matrix extends JFrame {
             Arrays.fill(parentCol[i], -1);
         }
 
-        boolean found = false;
+        // List to store the cells visited in BFS order
+        List<int[]> bfsOrder = new ArrayList<>();
+        bfsOrder.add(new int[]{happyFaceRow, happyFaceCol});
 
-        // BFS loop
-        while (!queue.isEmpty()) {
-            int[] current = queue.poll();
-            int row = current[0];
-            int col = current[1];
+        boolean[] found = {false};
 
-            // Check if goal is reached
-            if (row == goalRow && col == goalCol) {
-                found = true;
-                break;
-            }
+        // Separate thread for BFS processing
+        new Thread(() -> {
+            // BFS loop
+            while (!queue.isEmpty()) {
+                int[] current = queue.poll();
+                int row = current[0];
+                int col = current[1];
 
-            // Explore neighbors
-            for (int i = 0; i < 4; i++) {
-                int newRow = row + dr[i];
-                int newCol = col + dc[i];
+                // Check if goal is reached
+                if (row == goalRow && col == goalCol) {
+                    found[0] = true;
+                    break;
+                }
 
-                // Check boundaries and if cell is unvisited and not an 'X'
-                if (newRow >= 0 && newRow < gridRows && newCol >= 0 && newCol < gridCols
-                        && !visited[newRow][newCol]
-                        && !"X".equals(cellButtons[newRow][newCol].getText())) {
+                // Explore neighbors
+                for (int i = 0; i < 4; i++) {
+                    int newRow = row + dr[i];
+                    int newCol = col + dc[i];
 
-                    queue.add(new int[]{newRow, newCol});
-                    visited[newRow][newCol] = true;
+                    // Check boundaries and if cell is unvisited and not an 'X'
+                    if (newRow >= 0 && newRow < gridRows && newCol >= 0 && newCol < gridCols
+                            && !visited[newRow][newCol]
+                            && !"X".equals(cellButtons[newRow][newCol].getText())) {
 
-                    // Track the parent for path reconstruction
-                    parentRow[newRow][newCol] = row;
-                    parentCol[newRow][newCol] = col;
+                        queue.add(new int[]{newRow, newCol});
+                        visited[newRow][newCol] = true;
+
+                        // Add to BFS order for visualization
+                        bfsOrder.add(new int[]{newRow, newCol});
+
+                        // Track the parent for path reconstruction
+                        parentRow[newRow][newCol] = row;
+                        parentCol[newRow][newCol] = col;
+                    }
                 }
             }
-        }
 
-        if (found) {
-            reconstructPath(parentRow, parentCol);
-        } else {
-            JOptionPane.showMessageDialog(this, "No path found using BFS.");
-        }
+            // Visualization loop
+            for (int i = 0; i < bfsOrder.size(); i++) {
+                int[] cell = bfsOrder.get(i);
+                int row = cell[0];
+                int col = cell[1];
+
+                // Skip the start and goal cells
+                if (!(row == happyFaceRow && col == happyFaceCol) &&
+                        !(row == goalRow && col == goalCol)) {
+
+                    int finalRow = row;
+                    int finalCol = col;
+
+                    SwingUtilities.invokeLater(() -> {
+                        cellButtons[finalRow][finalCol].setBackground(Color.LIGHT_GRAY);
+                    });
+
+                    // Delay for slow motion
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+
+            // Once visualization is complete, reconstruct the path if found
+            SwingUtilities.invokeLater(() -> {
+                if (found[0]) {
+                    reconstructPath(parentRow, parentCol);
+                } else {
+                    JOptionPane.showMessageDialog(null, "No path found using BFS.");
+                }
+            });
+        }).start();
     }
+
 
     //=========================================================================================================
 
     private void dfs() {
+        // Check if the starting and goal positions are valid
+        if (happyFaceRow == -1 || happyFaceCol == -1 || goalRow == -1 || goalCol == -1) {
+            JOptionPane.showMessageDialog(this, "Place both the Happy Face 😊 and the Goal 🎯 before starting!");
+            return;
+        }
+
         // Create a 2D array to track visited cells
         boolean[][] visited = new boolean[gridRows][gridCols];
 
@@ -387,52 +434,100 @@ public class Matrix extends JFrame {
             Arrays.fill(parentCol[i], -1);
         }
 
-        boolean found = false; // Flag to check if the goal is reached
+        // List to store cells visited in DFS order
+        List<int[]> dfsOrder = new ArrayList<>();
+        dfsOrder.add(new int[]{happyFaceRow, happyFaceCol});
 
-        // Main DFS loop
-        while (!stack.isEmpty()) {
-            int[] current = stack.pop(); // Get the current cell from the stack
-            int row = current[0];
-            int col = current[1];
+        boolean[] found = {false}; // Flag to check if the goal is reached
 
-            // Skip this cell if it has already been visited
-            if (visited[row][col]) continue;
-            visited[row][col] = true; // Mark the current cell as visited
+        // Separate thread for DFS execution
+        new Thread(() -> {
+            // Main DFS loop
+            while (!stack.isEmpty()) {
+                int[] current = stack.pop(); // Get the current cell from the stack
+                int row = current[0];
+                int col = current[1];
 
-            // Check if the goal (🎯) is reached
-            if (row == goalRow && col == goalCol) {
-                found = true;
-                break;
-            }
+                // Skip this cell if it has already been visited
+                if (visited[row][col]) continue;
+                visited[row][col] = true; // Mark the current cell as visited
 
-            // Arrays representing possible movements: right, down, left, up
-            int[] dr = {0, 1, 0, -1};
-            int[] dc = {1, 0, -1, 0};
+                // Add the cell to the DFS order for visualization
+                dfsOrder.add(new int[]{row, col});
 
-            // Explore the neighboring cells
-            for (int i = 0; i < 4; i++) {
-                int newRow = row + dr[i];
-                int newCol = col + dc[i];
+                // Check if the goal (🎯) is reached
+                if (row == goalRow && col == goalCol) {
+                    found[0] = true;
+                    break;
+                }
 
-                // Check if the neighbor is within bounds, unvisited, and not blocked ('X')
-                if (newRow >= 0 && newRow < gridRows && newCol >= 0 && newCol < gridCols
-                        && !visited[newRow][newCol]
-                        && !"X".equals(cellButtons[newRow][newCol].getText())) {
-                    stack.push(new int[]{newRow, newCol}); // Add the neighbor to the stack
-                    parentRow[newRow][newCol] = row; // Record the current cell as the parent of the neighbor
-                    parentCol[newRow][newCol] = col;
+                // Arrays representing possible movements: right, down, left, up
+                int[] dr = {0, 1, 0, -1};
+                int[] dc = {1, 0, -1, 0};
+
+                // Explore the neighboring cells
+                for (int i = 0; i < 4; i++) {
+                    int newRow = row + dr[i];
+                    int newCol = col + dc[i];
+
+                    // Check if the neighbor is within bounds, unvisited, and not blocked ('X')
+                    if (newRow >= 0 && newRow < gridRows && newCol >= 0 && newCol < gridCols
+                            && !visited[newRow][newCol]
+                            && !"X".equals(cellButtons[newRow][newCol].getText())) {
+                        stack.push(new int[]{newRow, newCol}); // Add the neighbor to the stack
+                        parentRow[newRow][newCol] = row; // Record the current cell as the parent of the neighbor
+                        parentCol[newRow][newCol] = col;
+                    }
                 }
             }
-        }
 
-        // If the goal is found, reconstruct the path; otherwise, show an error message
-        if (found) reconstructPath(parentRow, parentCol);
-        else JOptionPane.showMessageDialog(this, "No path found using DFS.");
+            // Visualization loop
+            for (int i = 0; i < dfsOrder.size(); i++) {
+                int[] cell = dfsOrder.get(i);
+                int row = cell[0];
+                int col = cell[1];
+
+                // Skip the start and goal cells
+                if (!(row == happyFaceRow && col == happyFaceCol) &&
+                        !(row == goalRow && col == goalCol)) {
+
+                    int finalRow = row;
+                    int finalCol = col;
+
+                    SwingUtilities.invokeLater(() -> {
+                        cellButtons[finalRow][finalCol].setBackground(Color.LIGHT_GRAY);
+                    });
+
+                    // Delay for slow motion
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+
+            // Once visualization is complete, reconstruct the path if found
+            SwingUtilities.invokeLater(() -> {
+                if (found[0]) {
+                    reconstructPath(parentRow, parentCol);
+                } else {
+                    JOptionPane.showMessageDialog(null, "No path found using DFS.");
+                }
+            });
+        }).start();
     }
+
 
     //=========================================================================================================
 
     private void aStar() {
+        // Check if the starting and goal positions are valid
+        if (happyFaceRow == -1 || happyFaceCol == -1 || goalRow == -1 || goalCol == -1) {
+            JOptionPane.showMessageDialog(this, "Place both the Happy Face 😊 and the Goal 🎯 before starting!");
+            return;
+        }
+
         // Priority Queue to store nodes, sorted by their cost (current cost + heuristic)
         PriorityQueue<Node> pq = new PriorityQueue<>((a, b) -> Double.compare(a.cost, b.cost));
         // Add the starting node (Happy Face) with a cost of 0
@@ -449,52 +544,95 @@ public class Matrix extends JFrame {
             Arrays.fill(parentCol[i], -1);
         }
 
-        // Main A* loop
-        while (!pq.isEmpty()) {
-            // Get the node with the lowest cost from the priority queue
-            Node current = pq.poll();
-            int row = current.row;
-            int col = current.col;
+        // List to store the order of visited cells for visualization
+        List<Node> visitedOrder = new ArrayList<>();
 
-            // Skip this cell if it has already been visited
-            if (visited[row][col]) continue;
-            visited[row][col] = true; // Mark the current cell as visited
+        // Separate thread for A* execution
+        new Thread(() -> {
+            boolean found = false;
 
-            // Check if the goal (🎯) has been reached
-            if (row == goalRow && col == goalCol) {
-                reconstructPath(parentRow, parentCol); // Reconstruct and display the path
-                return; // End the function
-            }
+            // Main A* loop
+            while (!pq.isEmpty()) {
+                // Get the node with the lowest cost from the priority queue
+                Node current = pq.poll();
+                int row = current.row;
+                int col = current.col;
 
-            // Arrays representing possible movements: right, down, left, up
-            int[] dr = {0, 1, 0, -1};
-            int[] dc = {1, 0, -1, 0};
+                // Skip this cell if it has already been visited
+                if (visited[row][col]) continue;
+                visited[row][col] = true; // Mark the current cell as visited
 
-            // Explore the neighboring cells
-            for (int i = 0; i < 4; i++) {
-                int newRow = row + dr[i];
-                int newCol = col + dc[i];
+                // Add the cell to the visited order for visualization
+                visitedOrder.add(current);
 
-                // Check if the neighbor is within bounds, unvisited, and not blocked ('X')
-                if (newRow >= 0 && newRow < gridRows && newCol >= 0 && newCol < gridCols
-                        && !visited[newRow][newCol]
-                        && !"X".equals(cellButtons[newRow][newCol].getText())) {
-                    // Calculate the heuristic (straight-line distance to the goal)
-                    double heuristic = euclideanDistance(newRow, newCol, goalRow, goalCol);
-                    // Add the neighbor to the priority queue with updated cost
-                    pq.add(new Node(newRow, newCol, current.cost + 1 + heuristic));
-                    // Record the current cell as the parent of the neighbor
-                    parentRow[newRow][newCol] = row;
-                    parentCol[newRow][newCol] = col;
+                // Check if the goal (🎯) has been reached
+                if (row == goalRow && col == goalCol) {
+                    found = true;
+                    break;
+                }
+
+                // Arrays representing possible movements: right, down, left, up
+                int[] dr = {0, 1, 0, -1};
+                int[] dc = {1, 0, -1, 0};
+
+                // Explore the neighboring cells
+                for (int i = 0; i < 4; i++) {
+                    int newRow = row + dr[i];
+                    int newCol = col + dc[i];
+
+                    // Check if the neighbor is within bounds, unvisited, and not blocked ('X')
+                    if (newRow >= 0 && newRow < gridRows && newCol >= 0 && newCol < gridCols
+                            && !visited[newRow][newCol]
+                            && !"X".equals(cellButtons[newRow][newCol].getText())) {
+                        // Calculate the heuristic (straight-line distance to the goal)
+                        double heuristic = euclideanDistance(newRow, newCol, goalRow, goalCol);
+                        // Add the neighbor to the priority queue with updated cost
+                        pq.add(new Node(newRow, newCol, current.cost + 1 + heuristic));
+                        // Record the current cell as the parent of the neighbor
+                        parentRow[newRow][newCol] = row;
+                        parentCol[newRow][newCol] = col;
+                    }
                 }
             }
-        }
 
-        // If the queue is empty and the goal hasn't been reached, display an error message
-        JOptionPane.showMessageDialog(this, "No path found using A*.");
+            // Visualization loop
+            for (Node node : visitedOrder) {
+                int row = node.row;
+                int col = node.col;
+
+                // Skip the start and goal cells
+                if (!(row == happyFaceRow && col == happyFaceCol) &&
+                        !(row == goalRow && col == goalCol)) {
+
+                    int finalRow = row;
+                    int finalCol = col;
+
+                    SwingUtilities.invokeLater(() -> {
+                        cellButtons[finalRow][finalCol].setBackground(Color.LIGHT_GRAY);
+                    });
+
+                    // Delay for slow motion
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+
+            // Once visualization is complete, reconstruct the path if found
+            boolean finalFound = found;
+            SwingUtilities.invokeLater(() -> {
+                if (finalFound) {
+                    reconstructPath(parentRow, parentCol);
+                } else {
+                    JOptionPane.showMessageDialog(null, "No path found using A*.");
+                }
+            });
+        }).start();
     }
 
-
+    // Euclidean distance calculation
     private double euclideanDistance(int row1, int col1, int row2, int col2) {
         return Math.sqrt((row1 - row2) * (row1 - row2) + (col1 - col2) * (col1 - col2));
     }
@@ -601,7 +739,7 @@ public class Matrix extends JFrame {
     private void resetPath() {
         for (int row = 0; row < gridRows; row++) {
             for (int col = 0; col < gridCols; col++) {
-                if (cellButtons[row][col].getBackground() == Color.GREEN) {
+                if (cellButtons[row][col].getBackground() == Color.GREEN || cellButtons[row][col].getBackground() == Color.LIGHT_GRAY) {
                     cellButtons[row][col].setBackground(null); // Reset background to default
                 }
             }
