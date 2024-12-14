@@ -58,13 +58,12 @@ public class Matrix extends JFrame {
         inputPanel.add(new JLabel("Cols:"));
         inputPanel.add(colInputField);
         inputPanel.add(setSizeButton);
-        inputPanel.add(new JLabel("Mustafa Mohamed Ali (ANU) Roby Game"));
         add(inputPanel, BorderLayout.NORTH);
 
         // Matrix panel
         gridPanel = new JPanel();
         gridPanel.setLayout(new GridLayout(gridRows, gridCols));
-        gridPanel.setBackground(new Color(255, 255, 255)); // white background for contrast
+        gridPanel.setBackground(new Color(255, 255, 255)); // Dark background for contrast
 
         cellButtons = new JButton[gridRows][gridCols]; // Initialize cellButtons array
 
